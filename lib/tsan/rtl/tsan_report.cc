@@ -134,6 +134,7 @@ void PrintStack(const ReportStack *ent) {
                 common_flags()->strip_path_prefix, kInterposedFunctionPrefix);
     Printf("%s\n", res.data());
   }
+  Printf("\n");
 }
 
 static void PrintMutexSet(Vector<ReportMopMutex> const& mset) {
