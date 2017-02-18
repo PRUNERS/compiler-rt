@@ -117,6 +117,13 @@ class ReportDesc {
   ReportStack *sleep;
   int count;
 
+  //no reduction
+  static void PrintReport(const ReportDesc *rep);
+  
+  //reduction on basis of reduction on mem operation (virtual address space)
+  static Vector<ReportMop*>* PrintReport(const ReportDesc *rep, 
+    Vector<ReportMop*>* memChk);
+
   ReportDesc();
   ~ReportDesc();
 
@@ -126,8 +133,9 @@ class ReportDesc {
 };
 
 // Format and output the report to the console/log. No additional logic.
-void PrintReport(const ReportDesc *rep);
+//void PrintReport(const ReportDesc *rep);
 void PrintStack(const ReportStack *stack);
+void PrintReport(const ReportDesc *rep);
 
 }  // namespace __tsan
 

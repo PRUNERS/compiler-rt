@@ -531,6 +531,9 @@ bool OutputReport(ThreadState *thr, const ScopedReport &srep) {
       return false;
     }
   }
+
+  //static Vector<ReportMop*>* chkStack = new Vector<ReportMop*>(MBlockReportMop);
+  //chkStack = ReportDesc::PrintReport(rep, chkStack);
   PrintReport(rep);
   __tsan_on_report(rep);
   ctx->nreported++;

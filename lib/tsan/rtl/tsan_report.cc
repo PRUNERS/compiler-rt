@@ -226,8 +226,7 @@ static void PrintMutexShort(const ReportMutex *rm, const char *after) {
   Printf("%sM%zd%s%s", d.Mutex(), rm->id, d.EndMutex(), after);
 }
 
-static void PrintMutexShortWithAddress(const ReportMutex *rm,
-                                       const char *after) {
+static void PrintMutexShortWithAddress(const ReportMutex *rm, const char *after) {
   Decorator d;
   Printf("%sM%zd (%p)%s%s", d.Mutex(), rm->id, rm->addr, d.EndMutex(), after);
 }
@@ -312,7 +311,13 @@ static SymbolizedStack *SkipTsanInternalFrames(SymbolizedStack *frames) {
   return frames;
 }
 
-void PrintReport(const ReportDesc *rep) {
+void PrintReport(const ReportDesc *rep)
+{
+  static Vector<ReportMop*>* chkStack = new Vector<ReportMop*>(MBlockReportMop);
+  chkStack = ReportDesc::PrintReport(rep, chkStack);
+}
+
+void ReportDesc::PrintReport(const ReportDesc *rep) {
   Decorator d;
   Printf("==================\n");
   const char *rep_typ_str = ReportTypeString(rep->typ);
@@ -389,8 +394,31 @@ void PrintReport(const ReportDesc *rep) {
   Printf("==================\n");
 }
 
-#else  // #if !SANITIZER_GO
+Vector<ReportMop*>* ReportDesc::PrintReport(const ReportDesc *rep, Vector<ReportMop*>* memChk) {
+  bool flag = true;
+  for (uptr i = 0; i < rep->mops.Size(); i++)
+  {
+    //inserts only if unique address
+    for(uptr j = 0; j < (*memChk).Size(); j++)
+    {
+      flag = true;
+      if((void*)(*memChk)[j]->addr == (void *)(rep->mops[i])->addr)
+      {
+        flag = false;
+        break;
+      }
+    }
+    if(flag)
+    {
+      (*memChk).PushBack(rep->mops[i]);
+      ReportDesc::PrintReport(rep);
+      return memChk;
+    }
+  }
+  return memChk;
+}
 
+#else  // #if !SANITIZER_GO
 const int kMainThreadId = 1;
 
 void PrintStack(const ReportStack *ent) {
@@ -479,7 +507,6 @@ void PrintReport(const ReportDesc *rep) {
   }
   Printf("==================\n");
 }
-
 #endif
 
 }  // namespace __tsan
