@@ -311,6 +311,12 @@ static SymbolizedStack *SkipTsanInternalFrames(SymbolizedStack *frames) {
   return frames;
 }
 
+void PrintReport(const ReportDesc *rep)
+{
+  static Vector<ReportMop*>* chkStack = new Vector<ReportMop*>(MBlockReportMop);
+  chkStack = ReportDesc::PrintReport(rep, chkStack);
+}
+
 void ReportDesc::PrintReport(const ReportDesc *rep) {
   Decorator d;
   Printf("==================\n");
