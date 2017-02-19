@@ -158,6 +158,17 @@ void ThreadClock::acquire(ClockCache *c, const SyncClock *src) {
   }
 }
 
+void ThreadClock::acquire_free(ClockCache *c, SyncClock **src) {
+  acquire(c, *src);
+  (*src)->Reset(c);
+  internal_free(*src);
+}
+
+void ThreadClock::free(ClockCache *c, SyncClock **src) {
+  (*src)->Reset(c);
+  internal_free(*src);
+}
+
 void ThreadClock::release(ClockCache *c, SyncClock *dst) const {
   DCHECK_LE(nclk_, kMaxTid);
   DCHECK_LE(dst->size_, kMaxTid);
@@ -251,6 +262,17 @@ void ThreadClock::ReleaseStore(ClockCache *c, SyncClock *dst) const {
   dst->release_store_reused_ = reused_;
   // Rememeber that we don't need to acquire it in future.
   dst->elem(tid_).reused = reused_;
+}
+
+void ThreadClock::alloc_release(ClockCache *c, SyncClock **dst) {
+  if(*dst==0){
+    *dst=(SyncClock *)internal_alloc(MBlockReport, sizeof(SyncClock));
+//      *dst=new SyncClock();
+    new (*dst) SyncClock();
+    ReleaseStore(c,*dst);
+  } else {
+    release(c,*dst);
+  }
 }
 
 void ThreadClock::acq_rel(ClockCache *c, SyncClock *dst) {

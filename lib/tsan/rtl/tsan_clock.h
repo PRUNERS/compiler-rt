@@ -109,6 +109,10 @@ struct ThreadClock {
   void acq_rel(ClockCache *c, SyncClock *dst);
   void ReleaseStore(ClockCache *c, SyncClock *dst) const;
 
+  void alloc_release(ClockCache *c, SyncClock **dst);
+  void acquire_free(ClockCache *c, SyncClock **dst);
+  void free(ClockCache *c, SyncClock **dst);
+
   void DebugReset();
   void DebugDump(int(*printf)(const char *s, ...));
 

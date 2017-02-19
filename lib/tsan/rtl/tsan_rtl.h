@@ -754,6 +754,12 @@ void AcquireGlobal(ThreadState *thr, uptr pc);
 void Release(ThreadState *thr, uptr pc, uptr addr);
 void ReleaseStore(ThreadState *thr, uptr pc, uptr addr);
 void AfterSleep(ThreadState *thr, uptr pc);
+
+void ClockAcquire(ThreadState *thr, uptr pc, SyncClock **c);
+void ClockRelease(ThreadState *thr, uptr pc, SyncClock **c);
+void ClockDestroy(ThreadState *thr, uptr pc, SyncClock **c);
+void ReleaseNewImpl(ThreadState *thr, uptr pc, SyncClock **c);
+
 void AcquireImpl(ThreadState *thr, uptr pc, SyncClock *c);
 void ReleaseImpl(ThreadState *thr, uptr pc, SyncClock *c);
 void ReleaseStoreImpl(ThreadState *thr, uptr pc, SyncClock *c);

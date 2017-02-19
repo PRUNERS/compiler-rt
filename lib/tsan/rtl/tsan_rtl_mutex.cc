@@ -370,6 +370,13 @@ void Acquire(ThreadState *thr, uptr pc, uptr addr) {
   s->mtx.ReadUnlock();
 }
 
+void ClockAcquire(ThreadState *thr, uptr pc, SyncClock** addr) {
+  DPrintf("#%d: Acquire %zx\n", thr->tid, addr);
+  if (thr->ignore_sync)
+    return;
+  AcquireImpl(thr, pc, *addr);
+}
+
 static void UpdateClockCallback(ThreadContextBase *tctx_base, void *arg) {
   ThreadState *thr = reinterpret_cast<ThreadState*>(arg);
   ThreadContext *tctx = static_cast<ThreadContext*>(tctx_base);
@@ -398,6 +405,16 @@ void Release(ThreadState *thr, uptr pc, uptr addr) {
   TraceAddEvent(thr, thr->fast_state, EventTypeMop, 0);
   ReleaseImpl(thr, pc, &s->clock);
   s->mtx.Unlock();
+}
+
+void ClockRelease(ThreadState *thr, uptr pc, SyncClock **addr) {
+  DPrintf("#%d: Release %zx\n", thr->tid, addr);
+  if (thr->ignore_sync)
+    return;
+  thr->fast_state.IncrementEpoch();
+  // Can't increment epoch w/o writing to the trace as well.
+  TraceAddEvent(thr, thr->fast_state, EventTypeMop, 0);
+  ReleaseNewImpl(thr, pc, addr);
 }
 
 void ReleaseStore(ThreadState *thr, uptr pc, uptr addr) {
@@ -441,12 +458,25 @@ void AcquireImpl(ThreadState *thr, uptr pc, SyncClock *c) {
   StatInc(thr, StatSyncAcquire);
 }
 
+void ClockDestroy(ThreadState *thr, uptr pc, SyncClock **c) {
+  thr->clock.free(&thr->proc()->clock_cache, c);
+}
+
 void ReleaseImpl(ThreadState *thr, uptr pc, SyncClock *c) {
   if (thr->ignore_sync)
     return;
   thr->clock.set(thr->fast_state.epoch());
   thr->fast_synch_epoch = thr->fast_state.epoch();
   thr->clock.release(&thr->proc()->clock_cache, c);
+  StatInc(thr, StatSyncRelease);
+}
+
+void ReleaseNewImpl(ThreadState *thr, uptr pc, SyncClock **c) {
+  if (thr->ignore_sync)
+    return;
+  thr->clock.set(thr->fast_state.epoch());
+  thr->fast_synch_epoch = thr->fast_state.epoch();
+  thr->clock.alloc_release(&thr->proc()->clock_cache, c);
   StatInc(thr, StatSyncRelease);
 }
 

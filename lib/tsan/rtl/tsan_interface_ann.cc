@@ -233,6 +233,21 @@ void INTERFACE_ATTRIBUTE AnnotateHappensAfter(char *f, int l, uptr addr) {
   Acquire(thr, pc, addr);
 }
 
+void INTERFACE_ATTRIBUTE AnnotateBeforeClock(char *f, int l, void ** vc) {
+  SCOPED_ANNOTATION(AnnotateHappensBefore);
+  ClockRelease(thr, pc, (SyncClock**)vc);
+}
+
+void INTERFACE_ATTRIBUTE AnnotateAfterClock(char *f, int l, void ** vc) {
+  SCOPED_ANNOTATION(AnnotateHappensAfter);
+  ClockAcquire(thr, pc, (SyncClock**)vc);
+}
+
+void INTERFACE_ATTRIBUTE AnnotateDeleteClock(char *f, int l, void ** vc) {
+  SCOPED_ANNOTATION(AnnotateHappensBefore);
+  ClockDestroy(thr, pc, (SyncClock**)vc);
+}
+
 void INTERFACE_ATTRIBUTE AnnotateCondVarSignal(char *f, int l, uptr cv) {
   SCOPED_ANNOTATION(AnnotateCondVarSignal);
 }
