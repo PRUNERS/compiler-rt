@@ -234,6 +234,28 @@ void INTERFACE_ATTRIBUTE AnnotateHappensAfter(char *f, int l, uptr addr) {
   Acquire(thr, pc, addr);
 }
 
+#if !defined(TSAN_NO_LOCAL_CONCURRENCY)
+void INTERFACE_ATTRIBUTE AnnotateHappensBeforeTLC(char *f, int l, uptr addr) {
+  SCOPED_ANNOTATION(AnnotateHappensBefore);
+  Release(thr, pc, addr);
+}
+
+void INTERFACE_ATTRIBUTE AnnotateHappensAfterTLC(char *f, int l, uptr addr) {
+  SCOPED_ANNOTATION(AnnotateHappensAfter);
+  Acquire(thr, pc, addr);
+}
+
+void INTERFACE_ATTRIBUTE AnnotateInitTLC(char *f, int l, uptr addr) {
+  SCOPED_ANNOTATION(AnnotateHappensBefore);
+  ReleaseForceStore(thr, pc, addr);
+}
+
+void INTERFACE_ATTRIBUTE AnnotateStartTLC(char *f, int l, uptr addr) {
+  SCOPED_ANNOTATION(AnnotateHappensAfter);
+  StartConcurrent(thr, pc, addr);
+}
+#endif
+
 void INTERFACE_ATTRIBUTE AnnotateCondVarSignal(char *f, int l, uptr cv) {
   SCOPED_ANNOTATION(AnnotateCondVarSignal);
 }
@@ -295,6 +317,19 @@ void INTERFACE_ATTRIBUTE AnnotateFlushState(char *f, int l) {
 void INTERFACE_ATTRIBUTE AnnotateNewMemory(char *f, int l, uptr mem,
                                            uptr size) {
   SCOPED_ANNOTATION(AnnotateNewMemory);
+  OnAnnAlloc(thr, pc, mem, size, false);
+}
+
+void INTERFACE_ATTRIBUTE AnnotateMemoryRead(char *f, int l, uptr mem,
+                                           uptr size) {
+  SCOPED_ANNOTATION(AnnotateNewMemory);
+  MemoryAccessRange(thr, pc, mem, size, false);
+}
+
+void INTERFACE_ATTRIBUTE AnnotateMemoryWrite(char *f, int l, uptr mem,
+                                           uptr size) {
+  SCOPED_ANNOTATION(AnnotateNewMemory);
+  MemoryAccessRange(thr, pc, mem, size, true);
 }
 
 void INTERFACE_ATTRIBUTE AnnotateNoOp(char *f, int l, uptr mem) {

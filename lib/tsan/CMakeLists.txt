@@ -15,6 +15,13 @@ if(COMPILER_RT_TSAN_DEBUG_OUTPUT)
                           -DTSAN_DEBUG_OUTPUT=2)
 endif()
 
+option(COMPILER_RT_TSAN_WITH_TLC "Build Tsan with TLC" ON)
+mark_as_advanced(COMPILER_RT_TSAN_WITH_TLC)
+if(NOT COMPILER_RT_TSAN_WITH_TLC)
+  # Suppress thread local concurrency support to TSan runtime. 
+  list(APPEND TSAN_CFLAGS -DTSAN_NO_LOCAL_CONCURRENCY=1)
+endif()
+
 set(TSAN_RTL_CFLAGS ${TSAN_CFLAGS})
 append_list_if(COMPILER_RT_HAS_MSSE3_FLAG -msse3 TSAN_RTL_CFLAGS)
 append_list_if(SANITIZER_LIMIT_FRAME_SIZE -Wframe-larger-than=530

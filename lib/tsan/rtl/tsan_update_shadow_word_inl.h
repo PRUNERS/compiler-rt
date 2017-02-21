@@ -31,10 +31,19 @@ do {
     StatInc(thr, StatShadowSameSize);
     // same thread?
     if (Shadow::TidsAreEqual(old, cur)) {
-      StatInc(thr, StatShadowSameThread);
-      if (old.IsRWWeakerOrEqual(kAccessIsWrite, kIsAtomic))
-        StoreIfNotYetStored(sp, &store_word);
-      break;
+#if !defined(TSAN_NO_LOCAL_CONCURRENCY)
+      if (!HappensConcurrently(old, thr)) {
+#endif
+        StatInc(thr, StatShadowSameThread);
+        if (old.IsRWWeakerOrEqual(kAccessIsWrite, kIsAtomic))
+          StoreIfNotYetStored(sp, &store_word);
+        break;
+#if !defined(TSAN_NO_LOCAL_CONCURRENCY)
+      }
+      if (old.IsBothReadsOrAtomic(kAccessIsWrite, kIsAtomic))
+        break;
+      goto RACE;
+#endif
     }
     StatInc(thr, StatShadowAnotherThread);
     if (HappensBefore(old, thr)) {
@@ -50,8 +59,17 @@ do {
   if (Shadow::TwoRangesIntersect(old, cur, kAccessSize)) {
     StatInc(thr, StatShadowIntersect);
     if (Shadow::TidsAreEqual(old, cur)) {
-      StatInc(thr, StatShadowSameThread);
-      break;
+#if !defined(TSAN_NO_LOCAL_CONCURRENCY)
+      if (!HappensConcurrently(old, thr)) {
+#endif
+        StatInc(thr, StatShadowSameThread);
+        break;
+#if !defined(TSAN_NO_LOCAL_CONCURRENCY)
+      }
+      if (old.IsBothReadsOrAtomic(kAccessIsWrite, kIsAtomic))
+        break;
+      goto RACE;
+#endif
     }
     StatInc(thr, StatShadowAnotherThread);
     if (old.IsBothReadsOrAtomic(kAccessIsWrite, kIsAtomic))
