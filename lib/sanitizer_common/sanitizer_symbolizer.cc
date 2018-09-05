@@ -49,7 +49,7 @@ SymbolizedStack *SymbolizedStack::New(uptr addr) {
   return res;
 }
 
-void SymbolizedStack::ClearAll() {
+void SymbolizedStack::ClearAll(){
   info.Clear();
   if (next)
     next->ClearAll();

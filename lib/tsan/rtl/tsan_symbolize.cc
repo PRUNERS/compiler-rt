@@ -36,6 +36,14 @@ void ExitSymbolizer() {
   thr->ignore_interceptors--;
 }
 
+static bool (*TsanSymbolizeCallback)(uptr pc, char *func_buf, uptr func_siz,
+                               char *file_buf, uptr file_siz, int *line,
+                               int *col);
+void SetTsanSymbolizeCallback(bool (*callback)(uptr pc, char *func_buf, uptr func_siz,
+                               char *file_buf, uptr file_siz, int *line,
+                               int *col)) {
+  TsanSymbolizeCallback = callback;
+}
 // Legacy API.
 // May be overriden by JIT/JAVA/etc,
 // whatever produces PCs marked with kExternalPCBit.
@@ -43,6 +51,11 @@ SANITIZER_WEAK_DEFAULT_IMPL
 bool __tsan_symbolize_external(uptr pc, char *func_buf, uptr func_siz,
                                char *file_buf, uptr file_siz, int *line,
                                int *col) {
+  if (TsanSymbolizeCallback){
+    return TsanSymbolizeCallback(pc, func_buf, func_siz, file_buf, file_siz, line, col);
+  }
+                               Printf("WEAK symbolize_external\n");
+			       Printf("%s\n", func_buf);
   return false;
 }
 

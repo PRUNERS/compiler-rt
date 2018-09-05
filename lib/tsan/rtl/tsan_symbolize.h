@@ -26,6 +26,10 @@ void SymbolizeFlush();
 
 ReportStack *NewReportStackEntry(uptr addr);
 
+SANITIZER_INTERFACE_ATTRIBUTE void SetTsanSymbolizeCallback(bool (*callback)(uptr pc, char *func_buf, uptr func_siz,
+                               char *file_buf, uptr file_siz, int *line,
+                               int *col));
+
 }  // namespace __tsan
 
 #endif  // TSAN_SYMBOLIZE_H

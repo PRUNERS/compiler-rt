@@ -54,7 +54,7 @@ struct SymbolizedStack {
   static SymbolizedStack *New(uptr addr);
   // Deletes current, and all subsequent frames in the linked list.
   // The object cannot be accessed after the call to this function.
-  void ClearAll();
+  SANITIZER_INTERFACE_ATTRIBUTE void ClearAll();
 
  private:
   SymbolizedStack();
@@ -84,11 +84,11 @@ class Symbolizer final {
  public:
   /// Initialize and return platform-specific implementation of symbolizer
   /// (if it wasn't already initialized).
-  static Symbolizer *GetOrInit();
+  SANITIZER_INTERFACE_ATTRIBUTE static Symbolizer *GetOrInit();
   static void LateInitialize();
   // Returns a list of symbolized frames for a given address (containing
   // all inlined functions, if necessary).
-  SymbolizedStack *SymbolizePC(uptr address);
+  SANITIZER_INTERFACE_ATTRIBUTE SymbolizedStack *SymbolizePC(uptr address);
   bool SymbolizeData(uptr address, DataInfo *info);
 
   // The module names Symbolizer returns are stable and unique for every given

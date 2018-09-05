@@ -49,7 +49,7 @@ class SymbolizerTool {
   // The |stack| parameter is inout. It is pre-filled with the address,
   // module base and module offset values and is to be used to construct
   // other stack frames.
-  virtual bool SymbolizePC(uptr addr, SymbolizedStack *stack) {
+  SANITIZER_INTERFACE_ATTRIBUTE virtual bool SymbolizePC(uptr addr, SymbolizedStack *stack) {
     UNIMPLEMENTED();
   }
 
